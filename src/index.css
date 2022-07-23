@@ -11,3 +11,27 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+* {
+  margin: 0;
+  padding: 0;
+}
+.app {
+  width: 100%;
+  height: 100vh;
+}
+.wrapper {
+  margin: 50px;
+}
+.current_weather {
+  display: flex;
+  gap: 20px;
+  align-items: flex-end;
+}
+.temperature {
+  font-size: 2rem;
+  font-weight: bold;
+  margin: 4% 0 5px;
+}
+.pollution {
+  margin: 4% 0;
+}
