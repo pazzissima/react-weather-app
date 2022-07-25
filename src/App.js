@@ -8,16 +8,55 @@ const api = {
 function App() {
   const [query, setQuery] = useState('');
   const [weather, setWeather] = useState({});
+  const [coord, setCoord] = useState({});
+  let lat;
+  let lon;
 
   const search = evt => {
     if(evt.key ==="Enter"){
-      fetch(`${api.base}weather?q=${query}&units=metric&APPID=${api.key}`)
-      .then(res => res.json())
-      .then(result => {
-        setWeather(result);
+     
+      // Get today's weather
+      let todaysWeatherForecast = `${api.base}weather?q=${query}&units=metric&APPID=${api.key}`;
+      
+      const getForecast = async () => {
+        const res = await fetch(todaysWeatherForecast);
+        const data = await res.json();
+        setWeather(data);
         setQuery('');
-        console.log(result);
-      });
+        console.log("Response", data);
+        lat = data.coord.lat;
+        lon = data.coord.lon;
+
+        // Get 5 days' forecast
+        fetch(`${api.base}forecast/?q=${query}&appid=${api.key}`)
+          .then(res3 => res3.json())
+          .then(data => {
+            console.log("5 days forecast", data);
+            let minTemp = [];
+            let chunk;
+            let averDayMinTemp;
+            let averMinTemps = [];
+
+            data.list.forEach((e) => {
+              minTemp.push(Number(e.main.temp_min));
+            });
+            for (let i = 0; i < 40; i += 8) {
+              chunk = minTemp.slice(i, i + 8);
+              averDayMinTemp = chunk.reduce((a, b) => a + b, 0) / chunk.length;
+              averDayMinTemp = Math.round(averDayMinTemp-273.15);
+              averMinTemps.push(averDayMinTemp);
+            }
+            console.log('averMinTemps ',averMinTemps)
+          });
+        //Get air pollution
+        fetch(`${api.base}air_pollution?lat=${lat}&lon=${lon}&appid=${api.key}`)
+          .then(res2 => res2.json())
+          .then(result2 => {
+            setCoord(result2);
+            console.log("air pollution", result2);
+          });
+      };
+      getForecast();   
     }
   }
 
@@ -52,11 +91,22 @@ function App() {
                 {weather.wind.speed} m/s
               </div>
             </div>
-            <div className="pollution">Pollution: 19 AQI</div>
-            <div className="forecast">
-              This week's forecast:
-            </div>
           </div>
+        ) : ('')} 
+        {(typeof coord.list !=="undefined") ? (
+          <div className="pollution">Air quality: 
+            {(coord.list[0].main.aqi===1) ? " Good" : 
+              (coord.list[0].main.aqi===2) ? " Fair" : 
+                (coord.list[0].main.aqi===3) ? " Moderate" : 
+                  (coord.list[0].main.aqi===4) ? " Poor" :
+                    (coord.list[0].main.aqi===5) ? " Very Poor" : ''
+            }
+          </div>
+        ) : ('')} 
+        {(typeof coord.list !=="undefined") ? (           
+            <div className="forecast">
+              This week's forecast: 
+            </div>
         ) : ('')} 
       </div>
       
