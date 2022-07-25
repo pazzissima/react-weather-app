@@ -32,22 +32,34 @@ function App() {
           .then(res3 => res3.json())
           .then(data => {
             console.log("5 days forecast", data);
-            let minTemp = [];
+            let averageTemp = [];
             let chunk;
-            let averDayMinTemp;
-            let averMinTemps = [];
+            let averDayTemp;
+            const ul = document.getElementsByClassName('five_day_forecast')[0];
+            let li;
+            let dates = [];
+            let date;
 
             data.list.forEach((e) => {
-              minTemp.push(Number(e.main.temp_min));
+              averageTemp.push(Number(e.main.temp));
+              dates.push(e.dt_txt.slice(0,10));
             });
             for (let i = 0; i < 40; i += 8) {
-              chunk = minTemp.slice(i, i + 8);
-              averDayMinTemp = chunk.reduce((a, b) => a + b, 0) / chunk.length;
-              averDayMinTemp = Math.round(averDayMinTemp-273.15);
-              averMinTemps.push(averDayMinTemp);
-            }
-            console.log('averMinTemps ',averMinTemps)
-          });
+              chunk = averageTemp.slice(i, i + 8);
+              averDayTemp = chunk.reduce((a, b) => a + b, 0) / chunk.length;
+              averDayTemp = Math.round(averDayTemp-273.15);
+              
+              li = document.createElement('li');
+              date = dates[i];
+              
+              if(ul !=='undefined' && li.innerHTML!=='undefined'){
+                ul.appendChild(li);
+                ul.setAttribute('id', 'theList');
+                li.innerHTML = `${date}: ${averDayTemp}&#176;C`;
+              }
+            }            
+        });
+
         //Get air pollution
         fetch(`${api.base}air_pollution?lat=${lat}&lon=${lon}&appid=${api.key}`)
           .then(res2 => res2.json())
@@ -106,6 +118,8 @@ function App() {
         {(typeof coord.list !=="undefined") ? (           
             <div className="forecast">
               This week's forecast: 
+              <ul className="five_day_forecast">
+              </ul>
             </div>
         ) : ('')} 
       </div>
