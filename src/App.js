@@ -16,7 +16,10 @@ function App() {
   let chunk;
   let averDayTemp;
   let datesArray = [];
-  let date;  
+  let date;
+  const kelvins = 273.15; 
+  const apiEntriesPerDay = 8;
+  const totalAPIEntries = 40;
 
   const search = evt => {
     if(evt.key ==="Enter"){
@@ -27,51 +30,57 @@ function App() {
       const getForecast = async () => {
         const res = await fetch(todaysWeatherForecastQuery);
         const data = await res.json();
-        setWeather(data);
-        setQuery('');
-        console.log("Response", data);
-        lat = data.coord.lat;
-        lon = data.coord.lon;
-        document.getElementsByClassName('wrapper')[0].style.visibility = "visible";
-
-        // Get 5 days' forecast
-        fetch(`${api.base}forecast/?q=${query}&appid=${api.key}`)
-          .then(res3 => res3.json())
-          .then(data => {
-            console.log("5 days forecast", data);            
+        if (data.cod !== '404'){   
+          setWeather(data);
+          setQuery('');
+          console.log("Response", data);
             
-            data.list.forEach((e) => {
-              averageTempArray.push(Number(e.main.temp));
-              // Getting just the date and removing hours and minutes
-              datesArray.push(e.dt_txt.slice(0,10));
-            });
-            // Api returns data ...
-            let forcastData = {text: []};
+          lat = data.coord.lat;
+          lon = data.coord.lon;
+          document.getElementsByClassName('wrapper')[0].style.visibility = "visible";
 
-            for (let i = 0; i < 40; i += 8) {
-              // Create a chunk array that has all the temperature for each day 
-              chunk = averageTempArray.slice(i, i + 8);
-              // Use reduce function to return an average temperature for a day
-              averDayTemp = chunk.reduce((a, b) => a + b, 0) / chunk.length;
-              // Api returns temperature in Kelvins,
-              // subtract 273.15 to receive temperature in Celcius
-              averDayTemp = Math.round(averDayTemp-273.15);
+          // Get 5 days' forecast
+          fetch(`${api.base}forecast/?q=${query}&appid=${api.key}`)
+            .then(res3 => res3.json())
+            .then(data => {
+              console.log("5 days forecast", data);            
+              
+              data.list.forEach((e) => {
+                averageTempArray.push(Number(e.main.temp));
+                // Getting just the date and removing hours and minutes
+                datesArray.push(e.dt_txt.slice(0,10));
+              });
+              // Api returns data ...
+              let forcastData = {text: []};
 
-              date = datesArray[i];
-              forcastData.text.push(`${date}: ${averDayTemp}`);
-            }  
-            
-            setweather5day(forcastData);
-            console.log("My Saved data", forcastData);
-        });
+              for (let i = 0; i < totalAPIEntries; i += apiEntriesPerDay) {
+                // Create a chunk array that has all the temperature for each day 
+                chunk = averageTempArray.slice(i, i + 8);
+                // Use reduce function to return an average temperature for a day
+                averDayTemp = chunk.reduce((a, b) => a + b, 0) / chunk.length;
+                // Api returns temperature in Kelvins,
+                // subtract 273.15 to receive temperature in Celcius
+                averDayTemp = Math.round(averDayTemp-kelvins);
 
-        //Get air pollution
-        fetch(`${api.base}air_pollution?lat=${lat}&lon=${lon}&appid=${api.key}`)
-          .then(res2 => res2.json())
-          .then(result2 => {
-            setCoord(result2);
-            console.log("air pollution", result2);
+                date = datesArray[i];
+                date = new Date(date).toDateString().slice(0,-5);
+                forcastData.text.push(`${date}:  ${averDayTemp}`);
+              }  
+              
+              setweather5day(forcastData);
+              console.log("My Saved data", forcastData);
           });
+
+          //Get air pollution
+          fetch(`${api.base}air_pollution?lat=${lat}&lon=${lon}&appid=${api.key}`)
+            .then(res2 => res2.json())
+            .then(result2 => {
+              setCoord(result2);
+              console.log("air pollution", result2);
+            });
+          } else {
+            alert('Please check the name of the city/zip');
+          }
       };
       getForecast();   
     }
