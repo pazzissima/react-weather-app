@@ -9,55 +9,60 @@ function App() {
   const [query, setQuery] = useState('');
   const [weather, setWeather] = useState({});
   const [coord, setCoord] = useState({});
+  const [weather5day, setweather5day] = useState({});
   let lat;
   let lon;
+  let averageTempArray = [];
+  let chunk;
+  let averDayTemp;
+  let datesArray = [];
+  let date;  
 
   const search = evt => {
     if(evt.key ==="Enter"){
      
       // Get today's weather
-      let todaysWeatherForecast = `${api.base}weather?q=${query}&units=metric&APPID=${api.key}`;
+      let todaysWeatherForecastQuery = `${api.base}weather?q=${query}&units=metric&APPID=${api.key}`;
       
       const getForecast = async () => {
-        const res = await fetch(todaysWeatherForecast);
+        const res = await fetch(todaysWeatherForecastQuery);
         const data = await res.json();
         setWeather(data);
         setQuery('');
         console.log("Response", data);
         lat = data.coord.lat;
         lon = data.coord.lon;
+        document.getElementsByClassName('wrapper')[0].style.visibility = "visible";
 
         // Get 5 days' forecast
         fetch(`${api.base}forecast/?q=${query}&appid=${api.key}`)
           .then(res3 => res3.json())
           .then(data => {
-            console.log("5 days forecast", data);
-            let averageTemp = [];
-            let chunk;
-            let averDayTemp;
-            const ul = document.getElementsByClassName('five_day_forecast')[0];
-            let li;
-            let dates = [];
-            let date;
-
+            console.log("5 days forecast", data);            
+            
             data.list.forEach((e) => {
-              averageTemp.push(Number(e.main.temp));
-              dates.push(e.dt_txt.slice(0,10));
+              averageTempArray.push(Number(e.main.temp));
+              // Getting just the date and removing hours and minutes
+              datesArray.push(e.dt_txt.slice(0,10));
             });
+            // Api returns data ...
+            let forcastData = {text: []};
+
             for (let i = 0; i < 40; i += 8) {
-              chunk = averageTemp.slice(i, i + 8);
+              // Create a chunk array that has all the temperature for each day 
+              chunk = averageTempArray.slice(i, i + 8);
+              // Use reduce function to return an average temperature for a day
               averDayTemp = chunk.reduce((a, b) => a + b, 0) / chunk.length;
+              // Api returns temperature in Kelvins,
+              // subtract 273.15 to receive temperature in Celcius
               averDayTemp = Math.round(averDayTemp-273.15);
-              
-              li = document.createElement('li');
-              date = dates[i];
-              
-              if(ul !=='undefined' && li.innerHTML!=='undefined'){
-                ul.appendChild(li);
-                ul.setAttribute('id', 'theList');
-                li.innerHTML = `${date}: ${averDayTemp}&#176;C`;
-              }
-            }            
+
+              date = datesArray[i];
+              forcastData.text.push(`${date}: ${averDayTemp}`);
+            }  
+            
+            setweather5day(forcastData);
+            console.log("My Saved data", forcastData);
         });
 
         //Get air pollution
@@ -106,7 +111,7 @@ function App() {
           </div>
         ) : ('')} 
         {(typeof coord.list !=="undefined") ? (
-          <div className="pollution">Air quality: 
+          <div className="pollution"><span className="bold">Air quality: </span>
             {(coord.list[0].main.aqi===1) ? " Good" : 
               (coord.list[0].main.aqi===2) ? " Fair" : 
                 (coord.list[0].main.aqi===3) ? " Moderate" : 
@@ -115,10 +120,15 @@ function App() {
             }
           </div>
         ) : ('')} 
-        {(typeof coord.list !=="undefined") ? (           
+        {(typeof weather5day.text !=="undefined") ? (           
             <div className="forecast">
-              This week's forecast: 
+              <span className="bold">This week's forecast: </span>
               <ul className="five_day_forecast">
+                <li>{weather5day.text[0]}&#176;C</li>
+                <li>{weather5day.text[1]}&#176;C</li>
+                <li>{weather5day.text[2]}&#176;C</li>
+                <li>{weather5day.text[3]}&#176;C</li>
+                <li>{weather5day.text[4]}&#176;C</li>
               </ul>
             </div>
         ) : ('')} 
