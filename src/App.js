@@ -47,8 +47,8 @@ function App() {
               
               data.list.forEach((e) => {
                 averageTempArray.push(Number(e.main.temp));
-                // Getting just the date and removing hours and minutes
-                datesArray.push(e.dt_txt.slice(0,10));
+                // Getting the date and time
+                datesArray.push(e.dt_txt);
               });
               // Api returns data ...
               let forcastData = {text: []};
@@ -61,10 +61,9 @@ function App() {
                 // Api returns temperature in Kelvins,
                 // subtract 273.15 to receive temperature in Celcius
                 averDayTemp = Math.round(averDayTemp-kelvins);
-
-                date = datesArray[i];
-                date = new Date(date).toDateString().slice(0,-5);
-                forcastData.text.push(`${date}:  ${averDayTemp}`);
+                // Format date to print it without a year.
+                date = new Date(datesArray[i]).toDateString().slice(0,-5);
+                forcastData.text.push(`${date}: ${'\xa0'} ${averDayTemp}`);
               }  
               
               setweather5day(forcastData);
@@ -79,6 +78,7 @@ function App() {
               console.log("air pollution", result2);
             });
           } else {
+            //If the city is not recognised (response 404)
             alert('Please check the name of the city/zip');
           }
       };
@@ -101,7 +101,7 @@ function App() {
       <div className="wrapper">
         {(typeof weather.main !=="undefined") ? (
           <div>
-            <div className="location">{weather.name}</div>       
+            <div className="location">{weather.name}, {weather.sys.country}</div>       
             <div className="temperature">{Math.round(weather.main.temp)}&#176;C</div>
             <div className="current_weather">          
               <div className="description">

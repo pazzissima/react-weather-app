@@ -22,16 +22,17 @@
   z-index: -1;
 }
 .wrapper {
-  margin: 50px;
+  margin: 50px auto;
   background-color: rgba(6,50,50,0.8);
   padding: 40px;
-  width: 368px;
+  width: 300px;
   border-radius: 15px;
   border: 1px solid rgba(255,255,255, 0.7);
   visibility: hidden;
 }
 .search_box {
-  padding: 50px 50px 0;
+  padding-top: 50px;
+  text-align: center;
 }
 .search_box input {
   padding: 0.7rem 1.5rem;
@@ -75,4 +76,9 @@ ul.five_day_forecast {
 .bold {
   font-weight: bold;
 }
-
+@media only screen and (min-width: 768px) {
+  .wrapper {
+    margin: 50px;
+    width: 368px;
+  }
+}
